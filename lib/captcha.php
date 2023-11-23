@@ -1,11 +1,13 @@
 <?php
-session_start();
+
+namespace lib\captcha;
 
 define("CAPTCHA_STORAGE", "captcha");
 define("SALT", "1$$0ul4ch4ncl4");
 
 function captcha_gen()
 {
+    session_start();
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $captchaString = '';
 
@@ -27,12 +29,14 @@ function captcha_gen()
 
     $text_posx = ($IMG_WIDTH / 2) - 10;
     $text_posy = ($IMG_HEIGHT / 2) + 10;
-    imagettftext($image, 20, 0, $text_posx, $text_posy, $textColor, "fonts/Roboto.ttf", $captchaString);
+    imagettftext($image, 20, 0, $text_posx, $text_posy, $textColor, "static/fonts/Roboto.ttf", $captchaString);
     $bar_count = 10;
+
     for ($i = 0; $i < $bar_count; $i++) {
         $bar_color = imagecolorallocate($image, rand(0, 255), rand(0, 255), rand(0, 255));
         imageline($image, $text_posx, rand($text_posy, $text_posy + 30), rand(0, $IMG_WIDTH), rand(0, $IMG_HEIGHT), $bar_color);
     }
+
     $image = imagerotate($image, rand(10, 45), rand(0, 0xFFFFFF));
 
     header('Content-type: image/png');
@@ -44,6 +48,7 @@ function captcha_verify(string $answer)
 {
     $captcha = $_SESSION[CAPTCHA_STORAGE];
     $answer_hashed = hash("sha256", SALT . $answer);
+    captcha_clear();
 
     return $answer_hashed == $captcha;
 }
